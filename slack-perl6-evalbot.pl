@@ -3,7 +3,7 @@ use 5.22.0;
 use warnings;
 use lib "lib";
 use Mojo::SlackRTM;
-use Util qw(slack_unescape perl6_eval perl6_version perl5_eval perl5_version);
+use Util qw(slack_unescape perl6_eval perl6_version perl5_eval perl5_version ruby_eval python2_eval python3_eval);
 
 my $token = $ENV{SLACK_TOKEN} or die "miss SLACK_TOKEN";
 delete $ENV{$_} for grep {/^SLACK/} keys %ENV;
@@ -15,7 +15,7 @@ $slack->on(message => sub {
     my $channel = $event->{channel};
     my $text = $event->{text} // ($event->{message} || +{})->{text} // "";
     my $edited = ($event->{subtype} // "") eq 'message_changed';
-    return unless $text =~ m{\A(?:m|moar|perl6|perl6-m|perl5):\s*(\S.*)}sm
+    return unless $text =~ m{\A(?:m|moar|perl6|perl6-m|perl5|ruby|python2|python3):\s*(\S.*)}sm
                || $text =~ m{\A(?:\s*```perl6\s+(\S.*)```\Z)}sm
                || $text =~ m{\A(?:\s*```perl5\s+(\S.*)```\Z)}sm
                ;
@@ -25,10 +25,12 @@ $slack->on(message => sub {
     $program = $1 if $program =~ /\A`(.+)`\z/sm;
     $program = slack_unescape $program;
     my $out;
-    if ($text =~ /perl5:/) {
-    	$out = perl5_eval $program;
-    } else {
-    	$out = perl6_eval $program;
+    for ($text) {
+    	/perl5:/   and $out = perl5_eval($program);
+    	/ruby:/    and $out = ruby_eval($program);
+    	/python2:/ and $out = python2_eval($program);
+    	/python3:/ and $out = python3_eval($program);
+    	/perl6:/   and $out = perl6_eval($program);
     }
     $out = "\n" . '```' . "\n" . $out . '```';
     $out = "(edited) $out" if $edited;

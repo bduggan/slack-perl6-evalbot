@@ -8,7 +8,7 @@ use JSON::PP;
 use IO::Socket::SSL;
 use EvalbotExecuter;
 use Exporter 'import';
-our @EXPORT_OK = qw(slack_unescape perl6_eval perl5_eval perl6_version perl5_version);
+our @EXPORT_OK = qw(slack_unescape perl6_eval perl5_eval perl6_version perl5_version ruby_eval python2_eval python3_eval);
 
 sub slack_unescape {
     my $decoded = shift;
@@ -63,6 +63,45 @@ sub perl5_eval {
 
     # NOTE: result is decoded
     my $result = EvalbotExecuter::run($str, $perl5, "perl5");
+    $result =~ s{/var/folders/[a-z0-9_/-]+}{/var/tempfile}gi;
+    $result =~ s{/tmp/\S{10}}{/tmp/tempfile}g;
+    format_output($result);
+}
+
+sub ruby_eval {
+    my $str = shift;
+    my $cmd = {
+        cmd_line => q{ruby %program},
+    };
+
+    # NOTE: result is decoded
+    my $result = EvalbotExecuter::run($str, $cmd, "ruby");
+    $result =~ s{/var/folders/[a-z0-9_/-]+}{/var/tempfile}gi;
+    $result =~ s{/tmp/\S{10}}{/tmp/tempfile}g;
+    format_output($result);
+}
+
+sub python2_eval {
+    my $str = shift;
+    my $cmd = {
+        cmd_line => q{python %program},
+    };
+
+    # NOTE: result is decoded
+    my $result = EvalbotExecuter::run($str, $cmd, "python");
+    $result =~ s{/var/folders/[a-z0-9_/-]+}{/var/tempfile}gi;
+    $result =~ s{/tmp/\S{10}}{/tmp/tempfile}g;
+    format_output($result);
+}
+
+sub python3_eval {
+    my $str = shift;
+    my $cmd = {
+        cmd_line => q{python3 %program},
+    };
+
+    # NOTE: result is decoded
+    my $result = EvalbotExecuter::run($str, $cmd, "python");
     $result =~ s{/var/folders/[a-z0-9_/-]+}{/var/tempfile}gi;
     $result =~ s{/tmp/\S{10}}{/tmp/tempfile}g;
     format_output($result);
