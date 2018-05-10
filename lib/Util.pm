@@ -33,13 +33,13 @@ sub format_output {
 
     my $newline = '␤';
     my $null    = "\N{SYMBOL FOR NULL}";
-    $response =~ s/\n/$newline/g;
+#    $response =~ s/\n/$newline/g;
     $response =~ s/\x00/$null/g;
     if ( length($response) > 300 ) {
         $response = substr($response, 0, 290) . "...";
     }
 
-    return "$response\n";
+    return "$response";
 }
 
 sub perl6_eval {

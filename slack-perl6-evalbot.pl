@@ -15,13 +15,15 @@ $slack->on(message => sub {
     my $channel = $event->{channel};
     my $text = $event->{text} // ($event->{message} || +{})->{text} // "";
     my $edited = ($event->{subtype} // "") eq 'message_changed';
-    return unless $text =~ m{\A(?:m|moar|perl6|perl6-m):\s*(\S.*)}sm;
+    return unless $text =~ m{\A(?:m|moar|perl6|perl6-m):\s*(\S.*)}sm
+               || $text =~ m{\A(?:\s*```perl6\s+(\S.*)```\Z)}sm;
     my $program = $1;
     $program =~ s/\s+\z//sm;
     $program = $1 if $program =~ /\A```(.+)```\z/sm;
     $program = $1 if $program =~ /\A`(.+)`\z/sm;
     $program = slack_unescape $program;
     my $out = perl6_eval $program;
+    $out = "\n" . '```' . "\n" . $out . '```';
     $out = "(edited) $out" if $edited;
     $slack->send_message($channel => $out);
 });
