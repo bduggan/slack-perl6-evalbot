@@ -8,7 +8,9 @@ use JSON::PP;
 use IO::Socket::SSL;
 use EvalbotExecuter;
 use Exporter 'import';
-our @EXPORT_OK = qw(slack_unescape perl6_eval perl5_eval perl6_version perl5_version ruby_eval python2_eval python3_eval js_eval);
+our @EXPORT_OK = qw(slack_unescape perl6_eval perl5_eval perl6_version
+   perl5_version ruby_eval python2_eval python3_eval js_eval
+   elixir_eval);
 
 sub slack_unescape {
     my $decoded = shift;
@@ -115,6 +117,19 @@ sub js_eval {
 
     # NOTE: result is decoded
     my $result = EvalbotExecuter::run($str, $cmd, "js");
+    $result =~ s{/var/folders/[a-z0-9_/-]+}{/var/tempfile}gi;
+    $result =~ s{/tmp/\S{10}}{/tmp/tempfile}g;
+    format_output($result);
+}
+
+sub elixir_eval {
+    my $str = shift;
+    my $cmd = {
+        cmd_line => q{elixir %program},
+    };
+
+    # NOTE: result is decoded
+    my $result = EvalbotExecuter::run($str, $cmd, "ex");
     $result =~ s{/var/folders/[a-z0-9_/-]+}{/var/tempfile}gi;
     $result =~ s{/tmp/\S{10}}{/tmp/tempfile}g;
     format_output($result);
