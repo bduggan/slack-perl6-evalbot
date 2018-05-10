@@ -8,7 +8,7 @@ use JSON::PP;
 use IO::Socket::SSL;
 use EvalbotExecuter;
 use Exporter 'import';
-our @EXPORT_OK = qw(slack_unescape perl6_eval perl6_version);
+our @EXPORT_OK = qw(slack_unescape perl6_eval perl5_eval perl6_version perl5_version);
 
 sub slack_unescape {
     my $decoded = shift;
@@ -55,9 +55,26 @@ sub perl6_eval {
     format_output($result);
 }
 
+sub perl5_eval {
+    my $str = shift;
+    my $perl5 = {
+        cmd_line => q{perl %program},
+    };
+
+    # NOTE: result is decoded
+    my $result = EvalbotExecuter::run($str, $perl5, "perl5");
+    $result =~ s{/var/folders/[a-z0-9_/-]+}{/var/tempfile}gi;
+    $result =~ s{/tmp/\S{10}}{/tmp/tempfile}g;
+    format_output($result);
+}
+
 sub perl6_version {
     my $out = `perl6 -v` || '(something wrong)';
     $out;
 }
 
+sub perl5_version {
+    my $out = `perl -v` || '(something wrong)';
+    $out;
+}
 1;
